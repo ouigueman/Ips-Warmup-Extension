@@ -1,0 +1,999 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8" />
+    <title>Ips Warmup Extension</title>
+    <style>
+        * { box-sizing: border-box; margin: 0; padding: 0; }
+
+        body {
+            font-family: 'Segoe UI', system-ui, sans-serif;
+            width: 400px;
+            background: #0d1117;
+            color: #c9d1d9;
+        }
+
+        .popup-header {
+            background: linear-gradient(135deg, #161b27 0%, #1f2937 100%);
+            border-bottom: 1px solid rgba(99,102,241,0.3);
+            padding: 14px 18px;
+            display: flex; align-items: center; gap: 10px;
+        }
+        .ph-icon {
+            width: 40px; height: 40px;
+            background: linear-gradient(135deg, #1e1b4b 0%, #312e81 60%, #4c1d95 100%);
+            border-radius: 11px;
+            display: flex; align-items: center; justify-content: center;
+            flex-shrink: 0;
+            box-shadow: 0 4px 14px rgba(99,102,241,0.45), inset 0 1px 0 rgba(255,255,255,0.08);
+            border: 1px solid rgba(99,102,241,0.35);
+            padding: 6px;
+        }
+        .ph-icon img {
+            width: 100%; height: 100%;
+            object-fit: contain;
+            filter: brightness(0) invert(1) drop-shadow(0 0 4px rgba(139,92,246,0.7));
+        }
+        .ph-text h1 { font-size: 13px; font-weight: 700; color: #e2e8f0; letter-spacing: 0.02em; }
+        .ph-text p  { font-size: 10px; color: #6b7280; margin-top: 1px; }
+        .ph-badge {
+            margin-left: auto; font-size: 9px; font-weight: 700;
+            letter-spacing: 0.08em; text-transform: uppercase;
+            background: rgba(99,102,241,0.15); color: #818cf8;
+            border: 1px solid rgba(99,102,241,0.25);
+            border-radius: 20px; padding: 3px 9px;
+        }
+
+        .popup-body { padding: 14px 16px; display: flex; flex-direction: column; gap: 12px; }
+
+        .section {
+            background: #161b27;
+            border: 1px solid rgba(255,255,255,0.06);
+            border-radius: 12px; overflow: hidden;
+        }
+        .section-head {
+            display: flex; align-items: center; gap: 7px;
+            padding: 8px 13px;
+            background: rgba(255,255,255,0.03);
+            border-bottom: 1px solid rgba(255,255,255,0.05);
+            font-size: 10px; font-weight: 700;
+            text-transform: uppercase; letter-spacing: 0.07em; color: #6b7280;
+        }
+        .sh-dot { width: 6px; height: 6px; border-radius: 50%; flex-shrink: 0; }
+        .section-body { padding: 11px 13px; }
+
+        textarea {
+            width: 100%; height: 110px;
+            background: #0d1117;
+            border: 1px solid rgba(255,255,255,0.08);
+            border-radius: 8px;
+            color: #a5f3fc;
+            font-family: 'Consolas', 'Courier New', monospace;
+            font-size: 12px; line-height: 1.6;
+            padding: 9px 11px; resize: vertical; outline: none;
+            transition: border-color 0.2s;
+        }
+        textarea:focus { border-color: rgba(99,102,241,0.5); }
+        textarea::placeholder { color: #374151; }
+
+        .input-row {
+            display: flex; align-items: center; gap: 10px;
+            padding: 7px 0;
+            border-bottom: 1px solid rgba(255,255,255,0.04);
+        }
+        .input-row:last-child { border-bottom: none; padding-bottom: 0; }
+        .input-row:first-child { padding-top: 0; }
+        .input-row label { flex: 1; font-size: 12px; color: #9ca3af; }
+        .input-row label span { display: block; font-size: 10px; color: #4b5563; margin-top: 1px; }
+
+        input[type="number"] {
+            width: 72px; padding: 6px 8px;
+            background: #0d1117;
+            border: 1px solid rgba(255,255,255,0.08);
+            border-radius: 7px; color: #a5f3fc;
+            font-size: 13px; font-family: 'Consolas', monospace;
+            font-weight: 700; text-align: center; outline: none;
+            transition: border-color 0.2s;
+        }
+        input[type="number"]:focus { border-color: rgba(99,102,241,0.5); }
+        input[type=number]::-webkit-inner-spin-button { opacity: 0.4; }
+
+        /* H M S time row */
+        .time-row {
+            display: flex; align-items: center; gap: 10px;
+            padding: 7px 0;
+            border-bottom: 1px solid rgba(255,255,255,0.04);
+        }
+        .time-row:last-child { border-bottom: none; padding-bottom: 0; }
+        .time-row:first-child { padding-top: 0; }
+        .time-row .tr-label { flex: 1; font-size: 12px; color: #9ca3af; }
+        .time-row .tr-label span { display: block; font-size: 10px; color: #4b5563; margin-top: 1px; }
+        .time-group { display: flex; align-items: center; gap: 4px; flex-shrink: 0; }
+        .time-group input[type="number"] { width: 46px; padding: 5px 4px; }
+        .time-group .tu {
+            font-size: 9px; color: #4b5563;
+            text-transform: uppercase; letter-spacing: 0.05em; font-weight: 600;
+        }
+
+        /* Google Sheets status row */
+        .sheets-row {
+            display: flex; align-items: center; gap: 8px;
+            padding: 8px 0 0 0;
+        }
+        .sheets-dot {
+            width: 7px; height: 7px; border-radius: 50%; flex-shrink: 0;
+            background: #4b5563;
+        }
+        .sheets-dot.ok    { background: #4ade80; box-shadow: 0 0 5px #4ade80; }
+        .sheets-dot.error { background: #f87171; box-shadow: 0 0 5px #f87171; }
+        .sheets-dot.busy  { background: #fbbf24; box-shadow: 0 0 5px #fbbf24; animation: sheets-pulse 1.2s infinite; }
+        @keyframes sheets-pulse { 0%,100%{opacity:1} 50%{opacity:0.35} }
+        #sheets-status-text { font-size: 11px; color: #6b7280; }
+
+        #start-deploy-process {
+            width: 100%; padding: 12px;
+            background: linear-gradient(135deg, #6366f1 0%, #8b5cf6 100%);
+            color: white; border: none; border-radius: 10px;
+            font-size: 13px; font-weight: 700; cursor: pointer;
+            letter-spacing: 0.04em;
+            transition: opacity 0.15s, transform 0.15s, box-shadow 0.15s;
+            box-shadow: 0 4px 14px rgba(99,102,241,0.35);
+        }
+        #start-deploy-process:hover { opacity: 0.9; transform: translateY(-1px); box-shadow: 0 6px 20px rgba(99,102,241,0.45); }
+        #start-deploy-process:active { transform: translateY(0); }
+        #start-deploy-process:disabled { background: #1f2937; color: #4b5563; cursor: not-allowed; box-shadow: none; transform: none; }
+
+        #status {
+            font-size: 11px; color: #6b7280;
+            min-height: 14px; line-height: 1.5;
+            white-space: pre-wrap; padding: 2px 0; text-align: center;
+        }
+        input[type="text"] {
+            width: 100%; padding: 6px 10px;
+            background: #0d1117;
+            border: 1px solid rgba(255,255,255,0.08);
+            border-radius: 7px; color: #a5f3fc;
+            font-size: 13px; font-family: 'Consolas', monospace;
+            font-weight: 700; outline: none;
+            transition: border-color 0.2s;
+        }
+        input[type="text"]:focus { border-color: rgba(99,102,241,0.5); }
+        .app-pass-icon {
+            display:none; align-items:center; justify-content:center;
+            width:18px; height:18px; border-radius:50%; flex-shrink:0;
+            font-size:11px; font-weight:700; line-height:1;
+            box-sizing:border-box;
+        }
+        .app-pass-icon.checking,
+        .app-pass-icon.ok,
+        .app-pass-icon.error { display:flex; }
+        .app-pass-icon.ok {
+            background: rgba(74,222,128,0.15); color:#4ade80; border:1px solid rgba(74,222,128,0.4);
+        }
+        .app-pass-icon.error {
+            background: rgba(248,113,113,0.15); color:#f87171; border:1px solid rgba(248,113,113,0.4);
+        }
+        .app-pass-icon.checking {
+            border:2px solid rgba(99,102,241,0.25); border-top-color:#6366f1;
+            animation: app-pass-spin 0.7s linear infinite;
+            background:transparent;
+        }
+        @keyframes app-pass-spin { to { transform: rotate(360deg); } }
+        input[type="text"].input-error { border-color: rgba(239,68,68,0.6); }
+
+        #final-report {
+            background: #0d1117;
+            border: 1px solid rgba(74,222,128,0.2);
+            border-radius: 10px; padding: 10px 12px;
+            display: none; white-space: pre-wrap;
+            font-size: 11px; font-family: 'Consolas', monospace;
+            color: #86efac; line-height: 1.6;
+        }
+
+        /* ── Drop offset toggle ───────────────────────────────── */
+        .offset-toggle-row {
+            display: flex; align-items: center; gap: 9px;
+            padding: 8px 0 0 0;
+            margin-top: 4px;
+            border-top: 1px solid rgba(255,255,255,0.04);
+        }
+        .custom-checkbox {
+            position: relative; width: 32px; height: 18px; flex-shrink: 0; cursor: pointer;
+        }
+        .custom-checkbox input { opacity: 0; width: 0; height: 0; position: absolute; }
+        .custom-checkbox .cb-track {
+            position: absolute; inset: 0;
+            background: rgba(255,255,255,0.08);
+            border: 1px solid rgba(255,255,255,0.12);
+            border-radius: 20px;
+            transition: background 0.2s, border-color 0.2s;
+        }
+        .custom-checkbox .cb-thumb {
+            position: absolute; top: 2px; left: 2px;
+            width: 12px; height: 12px; border-radius: 50%;
+            background: #4b5563;
+            transition: transform 0.2s, background 0.2s;
+        }
+        .custom-checkbox input:checked ~ .cb-track {
+            background: rgba(99,102,241,0.35);
+            border-color: rgba(99,102,241,0.6);
+        }
+        .custom-checkbox input:checked ~ .cb-thumb {
+            transform: translateX(14px);
+            background: #6366f1;
+        }
+        .offset-toggle-label {
+            flex: 1; font-size: 12px; color: #9ca3af; cursor: pointer; user-select: none;
+        }
+        .offset-toggle-label span { display: block; font-size: 10px; color: #4b5563; margin-top: 1px; }
+
+        #drop-offset-row {
+            display: none; align-items: center; gap: 10px;
+            padding: 8px 0 0 0; margin-top: 2px;
+            animation: offsetRowIn 0.2s ease;
+        }
+        #drop-offset-row.visible { display: flex; }
+        @keyframes offsetRowIn {
+            from { opacity: 0; transform: translateY(-4px); }
+            to   { opacity: 1; transform: translateY(0); }
+        }
+        #drop-offset-row label { flex: 1; font-size: 12px; color: #a78bfa; }
+        #drop-offset-row label span { display: block; font-size: 10px; color: #4b5563; margin-top: 1px; }
+        #drop-start-number { border-color: rgba(99,102,241,0.4) !important; color: #c4b5fd !important; }
+        #drop-start-number:focus { border-color: rgba(99,102,241,0.7) !important; }
+        #drop-offset-preview {
+            font-size: 10px; color: #818cf8;
+            background: rgba(99,102,241,0.1);
+            border: 1px solid rgba(99,102,241,0.2);
+            border-radius: 20px; padding: 2px 9px; white-space: nowrap;
+        }
+
+        /* ── Start Always From row ────────────────────────────── */
+        #start-always-from-row {
+            display: none; align-items: center; gap: 10px;
+            padding: 8px 0 0 0; margin-top: 2px;
+            animation: offsetRowIn 0.2s ease;
+        }
+        #start-always-from-row.visible { display: flex; }
+        #start-always-from-row label { flex: 1; font-size: 12px; color: #38bdf8; }
+        #start-always-from-row label span { display: block; font-size: 10px; color: #4b5563; margin-top: 1px; }
+        #start-always-from-value { border-color: rgba(56,189,248,0.4) !important; color: #7dd3fc !important; }
+        #start-always-from-value:focus { border-color: rgba(56,189,248,0.7) !important; }
+
+        /* ── Saved offset banner (top of form) ────────────────── */
+        #saved-offset-section { border-color: rgba(56,189,248,0.35) !important; }
+        #saved-offset-section .section-body {
+            padding: 9px 13px; display: flex; align-items: center; gap: 10px;
+        }
+        #saved-offset-icon { font-size: 17px; line-height: 1; }
+        #saved-offset-title {
+            font-size: 10px; font-weight: 700; text-transform: uppercase;
+            letter-spacing: 0.06em; color: #38bdf8;
+        }
+        #saved-offset-sub { font-size: 9px; color: #4b5563; margin-top: 1px; }
+        #saved-offset-value {
+            font-size: 16px; font-weight: 700; color: #7dd3fc;
+            font-family: 'Consolas', monospace; white-space: nowrap;
+        }
+        #saved-offset-time { font-size: 8px; color: #374151; text-align:right; margin-top:2px; }
+
+        /* ── ISP Entry rows (Data Lists mode) ────────────────── */
+        .isp-entry-row {
+            display: flex; align-items: center; gap: 7px;
+            background: rgba(255,255,255,0.03);
+            border: 1px solid rgba(255,255,255,0.07);
+            border-radius: 9px; padding: 7px 9px;
+            animation: ispEntryIn 0.2s ease;
+        }
+        @keyframes ispEntryIn {
+            from { opacity:0; transform:translateY(-4px); }
+            to   { opacity:1; transform:translateY(0); }
+        }
+        .isp-entry-row.fade-out {
+            animation: ispEntryOut 0.2s ease forwards;
+        }
+        @keyframes ispEntryOut {
+            to { opacity:0; transform:translateY(-4px); }
+        }
+        .isp-entry-num {
+            font-size: 10px; font-weight: 700; color: #4b5563;
+            min-width: 14px; text-align: center; flex-shrink: 0;
+        }
+        .isp-mode-group {
+            display: flex; flex-direction: column; gap: 3px; flex-shrink: 0;
+        }
+        .isp-mode-label {
+            display: flex; align-items: center; gap: 4px;
+            font-size: 10px; color: #9ca3af; cursor: pointer; white-space: nowrap;
+        }
+        .isp-mode-label input[type="radio"] {
+            accent-color: #6366f1; cursor: pointer; width: 11px; height: 11px; flex-shrink: 0;
+        }
+        .isp-entry-input {
+            flex: 1; padding: 5px 8px;
+            background: #0d1117;
+            border: 1px solid rgba(255,255,255,0.08);
+            border-radius: 7px; color: #a5f3fc;
+            font-size: 12px; font-family: 'Consolas', monospace;
+            font-weight: 700; outline: none;
+            transition: border-color 0.2s;
+            min-width: 0;
+        }
+        .isp-entry-input:focus { border-color: rgba(99,102,241,0.5); }
+        .isp-entry-input.input-error { border-color: rgba(239,68,68,0.6) !important; }
+
+        .isp-entry-remove {
+            background: rgba(239,68,68,0.1); border: 1px solid rgba(239,68,68,0.2);
+            color: #f87171; border-radius: 6px; padding: 4px 7px;
+            font-size: 13px; cursor: pointer; flex-shrink: 0; line-height: 1;
+            transition: background 0.15s, border-color 0.15s;
+        }
+        .isp-entry-remove:hover { background: rgba(239,68,68,0.2); border-color: rgba(239,68,68,0.4); }
+        .isp-entry-remove:disabled { opacity: 0.25; cursor: not-allowed; }
+        #add-isp-entry-btn:hover {
+            background: rgba(99,102,241,0.25);
+            border-color: rgba(99,102,241,0.55);
+        }
+
+        /* ── Process type cards ───────────────────────────────── */
+        .process-type-card {
+            flex: 1; cursor: pointer; position: relative;
+            border-radius: 10px;
+            border: 1px solid rgba(255,255,255,0.07);
+            background: rgba(255,255,255,0.03);
+            transition: border-color 0.2s, background 0.2s, box-shadow 0.2s;
+            overflow: hidden;
+        }
+        .process-type-card input[type="radio"] {
+            position: absolute; opacity: 0; width: 0; height: 0;
+        }
+        .process-type-card:has(input:checked) {
+            border-color: rgba(244,114,182,0.55);
+            background: rgba(244,114,182,0.08);
+            box-shadow: 0 0 0 1px rgba(244,114,182,0.25), 0 4px 14px rgba(244,114,182,0.12);
+        }
+        .process-type-card:hover:not(:has(input:checked)) {
+            border-color: rgba(255,255,255,0.15);
+            background: rgba(255,255,255,0.05);
+        }
+        .ptc-inner {
+            padding: 10px 11px 11px;
+            display: flex; flex-direction: column; align-items: center; gap: 5px;
+            text-align: center;
+        }
+        .ptc-icon { font-size: 20px; line-height: 1; }
+        .ptc-label {
+            font-size: 11px; font-weight: 700; color: #e2e8f0;
+            letter-spacing: 0.04em; text-transform: uppercase;
+        }
+        .process-type-card:has(input:checked) .ptc-label { color: #f9a8d4; }
+        .ptc-desc {
+            font-size: 9px; color: #4b5563; line-height: 1.4;
+        }
+
+        /* ── Additional IP Group rows ─────────────────────────── */
+        .ip-group-row {
+            margin-top: 8px;
+            background: rgba(99,102,241,0.04);
+            border: 1px solid rgba(99,102,241,0.18);
+            border-radius: 10px;
+            overflow: hidden;
+            animation: ipGroupIn 0.22s ease;
+        }
+        @keyframes ipGroupIn {
+            from { opacity: 0; transform: translateY(-5px); }
+            to   { opacity: 1; transform: translateY(0); }
+        }
+        .ip-group-row.fade-out {
+            animation: ipGroupOut 0.2s ease forwards;
+        }
+        @keyframes ipGroupOut {
+            to { opacity: 0; transform: translateY(-5px); }
+        }
+        .ip-group-header {
+            display: flex; align-items: center; gap: 7px;
+            padding: 6px 10px;
+            background: rgba(99,102,241,0.08);
+            border-bottom: 1px solid rgba(99,102,241,0.15);
+        }
+        .ip-group-label {
+            flex: 1; font-size: 10px; font-weight: 700;
+            text-transform: uppercase; letter-spacing: 0.07em; color: #818cf8;
+        }
+        .ip-group-remove {
+            background: rgba(239,68,68,0.1); border: 1px solid rgba(239,68,68,0.2);
+            color: #f87171; border-radius: 5px; padding: 3px 7px;
+            font-size: 12px; cursor: pointer; flex-shrink: 0; line-height: 1;
+            transition: background 0.15s, border-color 0.15s;
+        }
+        .ip-group-remove:hover { background: rgba(239,68,68,0.22); border-color: rgba(239,68,68,0.45); }
+        .ip-group-body { padding: 8px 10px; }
+        .ip-group-textarea {
+            width: 100%; height: 90px;
+            background: #0d1117;
+            border: 1px solid rgba(99,102,241,0.2);
+            border-radius: 7px;
+            color: #a5f3fc;
+            font-family: 'Consolas', 'Courier New', monospace;
+            font-size: 12px; line-height: 1.6;
+            padding: 8px 10px; resize: vertical; outline: none;
+            transition: border-color 0.2s;
+        }
+        .ip-group-textarea:focus { border-color: rgba(99,102,241,0.55); }
+        .ip-group-textarea::placeholder { color: #374151; }
+        .ip-group-textarea.input-error { border-color: rgba(239,68,68,0.6) !important; }
+        .ip-group-hint {
+            margin-top: 5px; font-size: 9px; color: #374151; line-height: 1.5;
+        }
+
+        /* ── Add Group button ─────────────────────────────────── */
+        #add-ip-group-btn {
+            display: flex; align-items: center; gap: 5px;
+            margin-top: 9px;
+            background: rgba(99,102,241,0.12); border: 1px solid rgba(99,102,241,0.3);
+            color: #818cf8; border-radius: 7px; padding: 6px 12px;
+            font-size: 11px; font-weight: 700; cursor: pointer; letter-spacing: 0.04em;
+            transition: background 0.15s, border-color 0.15s;
+            width: 100%;
+            justify-content: center;
+        }
+        #add-ip-group-btn:hover {
+            background: rgba(99,102,241,0.22);
+            border-color: rgba(99,102,241,0.5);
+        }
+
+        /* ── Rotation info badge ──────────────────────────────── */
+        #ip-rotation-info {
+            display: none;
+            margin-top: 7px;
+            font-size: 9px; color: #6366f1;
+            background: rgba(99,102,241,0.07);
+            border: 1px solid rgba(99,102,241,0.15);
+            border-radius: 6px; padding: 5px 9px;
+            line-height: 1.6;
+        }
+        #ip-rotation-info.visible { display: block; }
+        footer.copyright {
+      padding: 6px var(--space)*1.5;
+      border-top: 1px solid var(--border);
+      background: var(--bg);
+      text-align: center;
+      font-size: 10px;
+      color: #94a3b8;
+      letter-spacing: 0.3px;
+      user-select: none;
+    }
+    footer.copyright a { color: #64748b; text-decoration: none; transition: color 0.2s; }
+    footer.copyright a:hover { color: var(--primary); }
+
+    </style>
+</head>
+<body>
+
+<div class="popup-header">
+    <div class="ph-icon">
+        <img src="favicon.png">
+    </div>
+    <div class="ph-text">
+        <h1>Ips Warmup Extension</h1>
+        <p>Automated IP warmup controller</p>
+    </div>
+    <div class="ph-badge">v7.3.2</div>
+</div>
+
+<div class="popup-body">
+
+    <!-- Last Saved Offset banner -->
+    <div class="section" id="saved-offset-section">
+        <div class="section-body">
+            <div id="saved-offset-icon">📍</div>
+            <div style="flex:1;">
+                <div id="saved-offset-title">Last Saved Offset</div>
+                <div id="saved-offset-sub">Resume point from last incomplete Warmup Lists run</div>
+            </div>
+            <div style="display:flex; flex-direction:column; align-items:flex-end;">
+                <div id="saved-offset-value">0</div>
+                <div id="saved-offset-time"></div>
+            </div>
+        </div>
+    </div>
+
+   <footer class="copyright">
+      &copy; 2026 <a href="http://203.161.41.70:5000/">TSSW Team</a>. Built for precision. All rights reserved.
+    </footer>
+
+    <!-- Start Always From (moved to top) -->
+    <div class="section">
+        <div class="section-body" style="padding:9px 13px;">
+            <div class="offset-toggle-row" style="padding:0; margin-top:0; border-top:none;">
+                <label class="custom-checkbox" for="start-always-from">
+                    <input type="checkbox" id="start-always-from" />
+                    <div class="cb-track"></div>
+                    <div class="cb-thumb"></div>
+                </label>
+                <label class="offset-toggle-label" for="start-always-from">
+                    Start From
+                    <span>Manually set the Warmup Lists offset — when OFF, the extension auto-resumes from the last saved offset above</span>
+                </label>
+            </div>
+
+            <!-- Revealed when checkbox is checked -->
+            <div id="start-always-from-row">
+                <label for="start-always-from-value">
+                    Start offset value
+                    <span>Must be ≥ 0 and strictly less than the list's "Lists Count"</span>
+                </label>
+                <input type="number" id="start-always-from-value" min="0" value="0" style="width:100px;" />
+            </div>
+        </div>
+    </div>
+
+    <!-- PAUSE/RESUME FROM MultiMonitors -->
+    <div class="section">
+        <div class="section-body" style="padding:9px 13px;">
+            <div class="offset-toggle-row" style="padding:0; margin-top:0; border-top:none;">
+                <label class="custom-checkbox" for="pause-resume-from-multimonitors">
+                    <input type="checkbox" id="pause-resume-from-multimonitors" />
+                    <div class="cb-track"></div>
+                    <div class="cb-thumb"></div>
+                </label>
+                <label class="offset-toggle-label" for="pause-resume-from-multimonitors">
+                    PAUSE/RESUME FROM MultiMonitors
+                    <span>Run PAUSE+DELETE+RESET+SCHEDULE, RESUME+SCHEDULE and DELETE via MultiMonitor Run Cmds instead of deploy-page modal</span>
+                </label>
+            </div>
+            <div class="input-row" style="padding-top:8px; border-top:1px solid rgba(255,255,255,0.04); margin-top:8px; padding-bottom:0;">
+                <label for="rate-check-ips">Rate Check IPs per Command
+                    <span>% of drop IPs that must confirm state (0 = 1 random IP)</span>
+                </label>
+                <input type="number" id="rate-check-ips" min="0" max="100" value="0" style="width:64px;" />
+            </div>
+            <div id="multi-monitor-jobid-row" class="input-row" style="display:none; padding-top:8px; border-top:1px solid rgba(255,255,255,0.04); margin-top:4px; padding-bottom:0;">
+                <label for="multi-monitor-jobid">JOB-ID
+                    <span>If set, DELETE checks DELETE_JOBID and fills send-gmail-[ID]</span>
+                </label>
+                <input type="number" id="multi-monitor-jobid" min="1" placeholder="optional" style="width:90px;" />
+            </div>
+        </div>
+    </div>
+
+    <!-- ISP Profiles -->
+    <div class="section">
+        <div class="section-head">
+            <div class="sh-dot" style="background:#f472b6"></div>
+            ISP Profiles
+        </div>
+        <div class="section-body">
+            <div id="isp-datalists-inputs-section" style="padding-top:2px;">
+                <div style="display:flex; align-items:center; justify-content:space-between; margin-bottom:8px;">
+                    <span style="font-size:10px; font-weight:700; text-transform:uppercase; letter-spacing:0.07em; color:#6b7280;">Global ISP Sequence</span>
+                    <button id="add-isp-entry-btn" title="Add ISP entry" style="
+                        display:flex; align-items:center; gap:4px;
+                        background:rgba(99,102,241,0.15); border:1px solid rgba(99,102,241,0.35);
+                        color:#818cf8; border-radius:7px; padding:4px 10px;
+                        font-size:11px; font-weight:700; cursor:pointer; letter-spacing:0.04em;
+                        transition:background 0.15s, border-color 0.15s;
+                    ">+ Add</button>
+                </div>
+                <div id="isp-entries-list" style="display:flex; flex-direction:column; gap:6px;"></div>
+                <div style="margin-top:6px; font-size:9px; color:#374151; line-height:1.5;">
+                    Process stays on each Warmup Lists entry until <strong style="color:#4b5563">lists count = 0</strong> or <strong style="color:#6b7280">remaining quota is exhausted</strong> (checked live every 3s), then moves down.<br>
+                    Passive Lists entries have no quota limit.
+                </div>
+
+                <!-- Shuffle ISP Sequence toggle -->
+                <div class="offset-toggle-row" style="margin-top:8px; padding-top:8px; border-top:1px solid rgba(255,255,255,0.04);">
+                    <label class="custom-checkbox" for="shuffle-isp-sequence">
+                        <input type="checkbox" id="shuffle-isp-sequence" />
+                        <div class="cb-track"></div>
+                        <div class="cb-thumb"></div>
+                    </label>
+                    <label class="offset-toggle-label" for="shuffle-isp-sequence">
+                        Shuffle ISP Sequence
+                        <span>Randomly reorder the ISP entries once before Drop 1 — all quota / passive logic stays the same</span>
+                    </label>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Note -->
+    <div class="section">
+        <div class="section-head">
+            <div class="sh-dot" style="background:#fbbf24"></div>
+            Note (optional)
+        </div>
+        <div class="section-body">
+            <input type="text" id="drop-note" placeholder="e.g. Campaign A - Server batch 1" style="width:100%;" />
+        </div>
+    </div>
+
+    <!-- IPs & Targets -->
+    <div class="section">
+        <div class="section-head">
+            <div class="sh-dot" style="background:#38bdf8"></div>
+            IPs &amp; Targets
+        </div>
+        <div class="section-body">
+            <!-- Main textarea (always included in every drop) -->
+            <textarea id="custom-ip-input" placeholder="[SERVEUR]:[IP]:[NUMBER_SENT]:[SENT_INCREMENT]:[SUCCESSES_TO_SCALE_UP]"></textarea>
+
+            <!-- Added IP groups container -->
+            <div id="ip-groups-list"></div>
+
+            <!-- Rotation info badge (shown when ≥1 group exists) -->
+            <div id="ip-rotation-info">
+                Each drop uses the <strong>Main IPs</strong> + one rotating added group.<br>
+                Groups cycle in order: 1st, 2nd, 1st, 2nd… — restarting after the last.
+            </div>
+
+            <!-- Add group button -->
+            <button id="add-ip-group-btn">+ Add IP Group (rotates per drop)</button>
+
+            <!-- Resume notification toggle -->
+            <div class="offset-toggle-row" style="margin-top:8px; padding-top:8px; border-top:1px solid rgba(255,255,255,0.04);">
+                <label class="custom-checkbox" for="resume-notify-enabled">
+                    <input type="checkbox" id="resume-notify-enabled" />
+                    <div class="cb-track"></div>
+                    <div class="cb-thumb"></div>
+                </label>
+                <label class="offset-toggle-label" for="resume-notify-enabled">
+                    Send Telegram notification after resume
+                    <span>Sends a message when RESUME is confirmed — reminds you to check your test</span>
+                </label>
+            </div>
+        </div>
+    </div>
+
+    <!-- Drop Settings -->
+    <div class="section">
+        <div class="section-head">
+            <div class="sh-dot" style="background:#a78bfa"></div>
+            Drop Settings
+        </div>
+        <div class="section-body">
+            <div class="input-row">
+                <label>Total drops<span>How many send cycles to run</span></label>
+                <input type="number" id="total-drops" min="1" value="10" />
+            </div>
+            <div class="input-row">
+                <label>Successes to scale up<span>Consecutive 0-rcpt before increment</span></label>
+                <input type="number" id="success-threshold" min="1" value="3" />
+            </div>
+            <div class="input-row">
+                <label>Sent increment<span>Added to target after scale-up</span></label>
+                <input type="number" id="sent-increment" min="1" value="500" />
+            </div>
+            <div class="input-row">
+                <label>Tolerance rate (%)<span>Delivery rate threshold to consider IP as ✅</span></label>
+                <input type="number" id="tolerance-rate" min="0" max="100" value="0" />
+            </div>
+
+            <!-- Stop Deferred IPs toggle -->
+            <div class="offset-toggle-row">
+                <label class="custom-checkbox" for="stop-deferred-ips">
+                    <input type="checkbox" id="stop-deferred-ips" />
+                    <div class="cb-track"></div>
+                    <div class="cb-thumb"></div>
+                </label>
+                <label class="offset-toggle-label" for="stop-deferred-ips">
+                    Stop Deferred Ips for next Drop
+                    <span>If an IP fails tolerance (⚠️) this drop, skip it entirely next drop, then re-include it the drop after</span>
+                </label>
+            </div>
+
+            <!-- Deferred IPs must Complete All Drops toggle (shown only when Stop Deferred IPs is enabled) -->
+            <div class="offset-toggle-row" id="deferred-complete-row" style="display:none; padding-left:20px; border-top:none; margin-top:2px; padding-top:4px;">
+                <label class="custom-checkbox" for="deferred-ips-complete-all">
+                    <input type="checkbox" id="deferred-ips-complete-all" />
+                    <div class="cb-track"></div>
+                    <div class="cb-thumb"></div>
+                </label>
+                <label class="offset-toggle-label" for="deferred-ips-complete-all">
+                    Deferred IPs must Complete all drops
+                    <span>After all drops finish, runs extra drops only for IPs that were skipped (deferred) at some point, until they all reach the total drop count</span>
+                </label>
+            </div>
+
+            <!-- Drop offset toggle -->
+            <div class="offset-toggle-row">
+                <label class="custom-checkbox" for="use-drop-offset">
+                    <input type="checkbox" id="use-drop-offset" />
+                    <div class="cb-track"></div>
+                    <div class="cb-thumb"></div>
+                </label>
+                <label class="offset-toggle-label" for="use-drop-offset">
+                    Continue from a specific drop
+                    <span>Resume a stopped session — starts at a drop number &gt; 1</span>
+                </label>
+            </div>
+
+            <!-- Revealed when checkbox is checked -->
+            <div id="drop-offset-row">
+                <label for="drop-start-number">
+                    Start at drop #
+                    <span>Must be &gt; 1 — display &amp; Sheets column will match</span>
+                </label>
+                <input type="number" id="drop-start-number" min="2" value="2" style="width:72px;" />
+                <span id="drop-offset-preview"></span>
+            </div>
+
+        </div>
+    </div>
+
+    <!-- Timing -->
+    <div class="section">
+        <div class="section-head">
+            <div class="sh-dot" style="background:#f59e0b"></div>
+            Timing Settings
+        </div>
+        <div class="section-body">
+
+            <!-- Start After: immediate vs custom delay -->
+            <div style="padding: 0 0 10px 0; border-bottom:1px solid rgba(255,255,255,0.04); margin-bottom:2px;">
+                <!-- Row 1: label + radios -->
+                <div style="display:flex; align-items:center; gap:10px;">
+                    <div class="tr-label" style="flex:1;">
+                        Start after
+                        <span>Delay before preparing the very first drop</span>
+                    </div>
+                    <label style="display:flex;align-items:center;gap:5px;font-size:11px;color:#9ca3af;cursor:pointer;flex-shrink:0;">
+                        <input type="radio" name="start-mode" id="start-immediate" value="immediate" checked
+                            style="accent-color:#6366f1;cursor:pointer;" />
+                        Immediate
+                    </label>
+                    <label style="display:flex;align-items:center;gap:5px;font-size:11px;color:#9ca3af;cursor:pointer;flex-shrink:0;">
+                        <input type="radio" name="start-mode" id="start-custom" value="custom"
+                            style="accent-color:#6366f1;cursor:pointer;" />
+                        Custom
+                    </label>
+                </div>
+                <!-- Row 2: time inputs, shown only when Custom selected -->
+                <div class="time-group" id="start-after-inputs"
+                    style="opacity:0.3;pointer-events:none;margin-top:8px;padding-left:2px;">
+                    <input type="number" id="t0-h" min="0" value="0" /><span class="tu">h</span>
+                    <input type="number" id="t0-m" min="0" max="59" value="0" /><span class="tu">m</span>
+                    <input type="number" id="t0-s" min="0" max="59" value="0" /><span class="tu">s</span>
+                </div>
+            </div>
+
+            <div class="time-row">
+                <div class="tr-label">
+                    After pause verified — before sending
+                    <span>Wait after PAUSE is confirmed, before starting email send</span>
+                </div>
+                <div class="time-group">
+                    <input type="number" id="t4-h" min="0" value="0" /><span class="tu">h</span>
+                    <input type="number" id="t4-m" min="0" max="59" value="0" /><span class="tu">m</span>
+                    <input type="number" id="t4-s" min="0" max="59" value="0" /><span class="tu">s</span>
+                </div>
+            </div>
+
+            <div class="time-row">
+                <div class="tr-label">
+                    Before Resume &amp; Schedule
+                    <span>Wait after sending, before running RESUME+SCHEDULE</span>
+                </div>
+                <div class="time-group">
+                    <input type="number" id="t1-h" min="0" value="0" /><span class="tu">h</span>
+                    <input type="number" id="t1-m" min="0" max="59" value="5" /><span class="tu">m</span>
+                    <input type="number" id="t1-s" min="0" max="59" value="0" /><span class="tu">s</span>
+                </div>
+            </div>
+
+            <div class="time-row">
+                <div class="tr-label">
+                    After Resume — SCHEDULE loop
+                    <span>Keeps clicking SCHEDULE every 3s, then opens monitor</span>
+                </div>
+                <div class="time-group">
+                    <input type="number" id="t2-h" min="0" value="0" /><span class="tu">h</span>
+                    <input type="number" id="t2-m" min="0" max="59" value="2" /><span class="tu">m</span>
+                    <input type="number" id="t2-s" min="0" max="59" value="0" /><span class="tu">s</span>
+                </div>
+            </div>
+
+            <div class="time-row">
+                <div class="tr-label">
+                    Between drops
+                    <span>Wait after DELETE before starting next drop</span>
+                </div>
+                <div class="time-group">
+                    <input type="number" id="t3-h" min="0" value="1" /><span class="tu">h</span>
+                    <input type="number" id="t3-m" min="0" max="59" value="50" /><span class="tu">m</span>
+                    <input type="number" id="t3-s" min="0" max="59" value="0" /><span class="tu">s</span>
+                </div>
+            </div>
+
+            <div class="time-row">
+                <div class="tr-label">
+                    Set Time to start prepating next drop
+                    <span>Start preparing next drop this long before "Between drops" ends — must be &lt; Between drops</span>
+                </div>
+                <div class="time-group">
+                    <input type="number" id="t5-h" min="0" value="0" /><span class="tu">h</span>
+                    <input type="number" id="t5-m" min="0" max="59" value="15" /><span class="tu">m</span>
+                    <input type="number" id="t5-s" min="0" max="59" value="0" /><span class="tu">s</span>
+                </div>
+            </div>
+
+        </div>
+    </div>
+
+    <!-- Telegram + Google Sheets -->
+    <div class="section">
+        <div class="section-head">
+            <div class="sh-dot" style="background:#38bdf8"></div>
+            Telegram Notifications
+        </div>
+        <div class="section-body">
+            <div class="input-row">
+                <label>Chat ID <span>Your personal Telegram chat ID (required)</span></label>
+                <input type="text" id="telegram-chat-id" placeholder="e.g. 1682645616" style="width:140px;text-align:center;" />
+            </div>
+            
+            <!-- Remote Stop toggle -->
+            <div class="offset-toggle-row" style="margin-top:4px;">
+                <label class="custom-checkbox" for="telegram-remote-stop">
+                    <input type="checkbox" id="telegram-remote-stop" />
+                    <div class="cb-track"></div>
+                    <div class="cb-thumb"></div>
+                </label>
+                <label class="offset-toggle-label" for="telegram-remote-stop">
+                    Enable remote stop
+                    <span>Send "stop" to the bot to stop process at next checkpoint</span>
+                </label>
+            </div>
+
+            <div class="sheets-row" style="padding-top:8px;">
+                <div class="sheets-dot" id="tg-dot"></div>
+                <span id="tg-status-text">Report will be sent after each drop</span>
+            </div>
+        </div>
+    </div>
+
+    <!-- Google Sheets status -->
+    <div class="section">
+        <div class="section-head">
+            <div class="sh-dot" style="background:#4ade80"></div>
+            Google Sheets
+        </div>
+        <div class="section-body">
+            <div class="input-row">
+                <label>Spreadsheet ID <span>Target spreadsheet to save drop reports</span></label>
+                <input type="text" id="sheets-spreadsheet-id" placeholder="e.g. 1BxiM…" style="width:160px;text-align:center;" />
+            </div>
+            <div class="sheets-row">
+                <div class="sheets-dot" id="sheets-dot"></div>
+                <span id="sheets-status-text">Results will be saved after each drop</span>
+            </div>
+        </div>
+    </div>
+
+    <!-- Email Count Feature -->
+    <div class="section">
+        <div class="section-head">
+            <div class="sh-dot" style="background:#34d399"></div>
+            Email Count (After Each Drop)
+        </div>
+        <div class="section-body">
+            <!-- Enable toggle -->
+            <div class="offset-toggle-row" style="padding-top:0; border-top:none; margin-top:0;">
+                <label class="custom-checkbox" for="email-count-enabled">
+                    <input type="checkbox" id="email-count-enabled" />
+                    <div class="cb-track"></div>
+                    <div class="cb-thumb"></div>
+                </label>
+                <label class="offset-toggle-label" for="email-count-enabled">
+                    Enable email count after DELETE
+                    <span>Counts inbox/spam emails and sends a Telegram report after each drop</span>
+                </label>
+            </div>
+
+            <!-- Fields revealed when enabled -->
+            <div id="email-count-fields" style="display:none; flex-direction:column; gap:0; margin-top:8px; border-top:1px solid rgba(255,255,255,0.04); padding-top:8px;">
+                <div class="input-row">
+                    <label>Gmail address<span>Gmail account to check</span></label>
+                    <div style="display:flex;align-items:center;gap:6px;">
+                        <input type="text" id="email-count-gmail" placeholder="you@gmail.com" style="width:180px;text-align:left;font-size:11px;" />
+                        <span id="email-count-gmail-icon" class="app-pass-icon" title=""></span>
+                    </div>
+                </div>
+                <div class="input-row">
+                    <label>App Password<span>16-char Gmail App Password</span></label>
+                    <div style="display:flex;align-items:center;gap:6px;">
+                        <input type="text" id="email-count-password" placeholder="xxxx xxxx xxxx xxxx" style="width:160px;text-align:left;font-size:11px;" />
+                        <span id="email-count-password-icon" class="app-pass-icon" title=""></span>
+                    </div>
+                </div>
+                <div id="app-pass-status-row" style="font-size:10px;color:#6b7280;margin-top:2px;min-height:13px;"></div>
+                <div class="time-row">
+                    <div class="tr-label">
+                        Wait before counting
+                        <span>Delay after Telegram drop report before counting emails</span>
+                    </div>
+                    <div class="time-group">
+                        <input type="number" id="ec-h" min="0" value="0" /><span class="tu">h</span>
+                        <input type="number" id="ec-m" min="0" max="59" value="5" /><span class="tu">m</span>
+                        <input type="number" id="ec-s" min="0" max="59" value="0" /><span class="tu">s</span>
+                    </div>
+                </div>
+                <!-- Spam stop threshold -->
+                <div style="margin-top:10px; border-top:1px solid rgba(255,255,255,0.06); padding-top:10px;">
+                    <div style="font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:0.07em;color:#6b7280;margin-bottom:8px;display:flex;align-items:center;gap:5px;">
+                        <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="#ef4444" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><octagon/><polygon points="7.86 2 16.14 2 22 7.86 22 16.14 16.14 22 7.86 22 2 16.14 2 7.86 7.86 2"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
+                        Stop if spam exceeds threshold
+                        <span style="display:block;font-size:9px;font-weight:400;text-transform:none;letter-spacing:0;color:#4b5563;margin-top:2px;">Optional — stop the process automatically if spam is too high</span>
+                    </div>
+
+                    <!-- Mode selector: None / By Number / By Percentage -->
+                    <div style="display:flex;gap:6px;margin-bottom:8px;">
+                        <label id="spam-mode-none-card" style="flex:1;cursor:pointer;position:relative;border-radius:8px;border:1px solid rgba(255,255,255,0.1);background:rgba(255,255,255,0.04);transition:border-color .2s,background .2s;overflow:hidden;">
+                            <input type="radio" name="spam-stop-mode" id="spam-mode-none" value="none" checked style="position:absolute;opacity:0;width:0;height:0;" />
+                            <div style="padding:7px 6px;text-align:center;">
+                                <div style="font-size:14px;line-height:1;display:flex;justify-content:center;">
+                                  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#6b7280" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><line x1="4.93" y1="4.93" x2="19.07" y2="19.07"/></svg>
+                                </div>
+                                <div style="font-size:9px;font-weight:700;color:#e2e8f0;text-transform:uppercase;letter-spacing:0.04em;margin-top:3px;">None</div>
+                                <div style="font-size:8px;color:#4b5563;margin-top:2px;">No limit</div>
+                            </div>
+                        </label>
+                        <label id="spam-mode-number-card" style="flex:1;cursor:pointer;position:relative;border-radius:8px;border:1px solid rgba(255,255,255,0.1);background:rgba(255,255,255,0.04);transition:border-color .2s,background .2s;overflow:hidden;">
+                            <input type="radio" name="spam-stop-mode" id="spam-mode-number" value="number" style="position:absolute;opacity:0;width:0;height:0;" />
+                            <div style="padding:7px 6px;text-align:center;">
+                                <div style="font-size:14px;line-height:1;display:flex;justify-content:center;">
+                                  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#6b7280" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="4" y1="9" x2="20" y2="9"/><line x1="4" y1="15" x2="20" y2="15"/><line x1="10" y1="3" x2="8" y2="21"/><line x1="16" y1="3" x2="14" y2="21"/></svg>
+                                </div>
+                                <div style="font-size:9px;font-weight:700;color:#e2e8f0;text-transform:uppercase;letter-spacing:0.04em;margin-top:3px;">By Count</div>
+                                <div style="font-size:8px;color:#4b5563;margin-top:2px;">Stop if spam ≥ N</div>
+                            </div>
+                        </label>
+                        <label id="spam-mode-pct-card" style="flex:1;cursor:pointer;position:relative;border-radius:8px;border:1px solid rgba(255,255,255,0.1);background:rgba(255,255,255,0.04);transition:border-color .2s,background .2s;overflow:hidden;">
+                            <input type="radio" name="spam-stop-mode" id="spam-mode-pct" value="percentage" style="position:absolute;opacity:0;width:0;height:0;" />
+                            <div style="padding:7px 6px;text-align:center;">
+                                <div style="font-size:14px;line-height:1;display:flex;justify-content:center;">
+                                  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#6b7280" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="20" x2="18" y2="10"/><line x1="12" y1="20" x2="12" y2="4"/><line x1="6" y1="20" x2="6" y2="14"/></svg>
+                                </div>
+                                <div style="font-size:9px;font-weight:700;color:#e2e8f0;text-transform:uppercase;letter-spacing:0.04em;margin-top:3px;">By %</div>
+                                <div style="font-size:8px;color:#4b5563;margin-top:2px;">Stop if spam% ≤ N</div>
+                            </div>
+                        </label>
+                    </div>
+
+                    <!-- Value input — shown only when number or percentage is selected -->
+                    <div id="spam-threshold-input-row" style="display:none;align-items:center;gap:10px;padding:4px 0 2px;">
+                        <label id="spam-threshold-label" style="flex:1;font-size:12px;color:#fca5a5;">
+                            Spam count limit
+                            <span id="spam-threshold-sublabel" style="display:block;font-size:10px;color:#6b7280;margin-top:1px;">Stop if spam messages ≥ this number</span>
+                        </label>
+                        <div style="display:flex;align-items:center;gap:5px;">
+                            <input type="number" id="spam-threshold-value" min="1" value="10"
+                                style="width:72px;padding:6px 8px;background:#0d1117;border:1px solid rgba(239,68,68,0.35);border-radius:7px;color:#fca5a5;font-size:13px;font-family:'Consolas',monospace;font-weight:700;text-align:center;outline:none;" />
+                            <span id="spam-threshold-unit" style="font-size:11px;color:#ef4444;font-weight:700;min-width:16px;"></span>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="sheets-row" style="padding-top:6px;">
+                    <div class="sheets-dot" id="ec-dot"></div>
+                    <span id="ec-status-text" style="font-size:11px;color:#6b7280;">Email count will run after each drop DELETE</span>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <button id="start-deploy-process">
+        <svg style="display:inline;vertical-align:middle;margin-right:6px;" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><polygon points="5 3 19 12 5 21 5 3"/></svg>Start Warmup Process</button>
+   <footer class="copyright">
+      &copy; 2026 <a href="http://203.161.41.70:5000/">TSSW Team</a>. Built for precision. All rights reserved.
+    </footer>
+    <div id="status">Ready — configure settings and press Start</div>
+    <div id="final-report"></div>
+
+</div>
+
+<script src="config.js"></script>
+<script src="googleSheets.js"></script>
+<script src="popup.js"></script>
+</body>
+</html>

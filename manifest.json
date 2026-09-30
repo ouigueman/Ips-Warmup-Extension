@@ -1,0 +1,58 @@
+{
+  "manifest_version": 2,
+  "name": "Ips Warmup Extension",
+  "version": "1.2",
+  "description": "Inject custom deploy controls into deploy page",
+
+  "browser_specific_settings": {
+    "gecko": {
+      "id": "ips-warmup@extension",
+      "strict_min_version": "109.0"
+    }
+  },
+
+  "permissions": [
+    "activeTab",
+    "tabs",
+    "webNavigation",
+    "storage",
+    "scripting",
+    "http://95.216.72.6:90/*",
+    "http://5.45.73.13:8181/*",
+    "https://sheets.googleapis.com/*",
+    "https://oauth2.googleapis.com/*",
+    "<all_urls>",
+    "https://api.telegram.org/*",
+    "http://203.161.41.70:5013/*"
+  ],
+
+  "web_accessible_resources": [
+    "queues-monitor.json"
+  ],
+
+  "browser_action": {
+        "default_icon": "favicon.png",
+    "default_popup": "popup.html",
+    "default_title": "Ips Warmup Extension"
+  },
+
+  "background": {
+    "scripts": ["config.js", "googleSheets.js", "background.js"],
+    "persistent": true
+  },
+
+  "content_scripts": [
+    {
+      "matches": [
+        "http://95.216.72.6:90/*"
+      ],
+      "js": [
+        "config.js",
+        "googleSheets.js",
+        "telegram.js",
+        "content.js"
+      ],
+      "run_at": "document_idle"
+    }
+  ]
+}
