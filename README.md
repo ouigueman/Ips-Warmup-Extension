@@ -8,8 +8,10 @@ The extension adds controls to the existing deployment interface and coordinates
 
 ## Extension preview
 
-<img width="180" height="925" alt="image" src="https://github.com/user-attachments/assets/bc575e28-e2b4-4f71-b5e7-e298e47a18cb" />
-
+<img width="403" height="605" alt="image" src="https://github.com/user-attachments/assets/e06ed2da-6b33-4393-9ab3-eb3135d185a3" />
+<img width="410" height="611" alt="image" src="https://github.com/user-attachments/assets/03079cdb-de4e-4070-9e6c-1a2c030c34f4" />
+<img width="410" height="610" alt="image" src="https://github.com/user-attachments/assets/34e3c67d-be3f-4f28-9cda-9287c4964716" />
+<img width="404" height="611" alt="image" src="https://github.com/user-attachments/assets/43009729-0be9-4431-a1b6-2da36be65bb2" />
 
 *Static capture of the settings popup. Live status, account validation, and service-backed features require the extension runtime and its companion services.*
 
