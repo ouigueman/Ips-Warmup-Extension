@@ -12,6 +12,7 @@ The extension adds controls to the existing deployment interface and coordinates
 <img width="410" height="611" alt="image" src="https://github.com/user-attachments/assets/03079cdb-de4e-4070-9e6c-1a2c030c34f4" />
 <img width="410" height="610" alt="image" src="https://github.com/user-attachments/assets/34e3c67d-be3f-4f28-9cda-9287c4964716" />
 <img width="404" height="611" alt="image" src="https://github.com/user-attachments/assets/43009729-0be9-4431-a1b6-2da36be65bb2" />
+<img width="1298" height="854" alt="image" src="https://github.com/user-attachments/assets/91f8ef2d-2c9d-4cee-8604-4bf6bfaf7053" />
 
 *Static capture of the settings popup. Live status, account validation, and service-backed features require the extension runtime and its companion services.*
 
